@@ -97,7 +97,7 @@ var Debug string' > "./internal/self/self.go"
 }
 
 install_gmks() {
-  curl -s https://raw.githubusercontent.com/ssleert/larell/master/gmks/gmks > gkms
+  curl -s https://raw.githubusercontent.com/ssleert/larell/master/gmks/gmks > gmks
   chmod +x gkms
 
   echo "#project info

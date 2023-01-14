@@ -62,7 +62,7 @@ go 1.18" > "./go.mod"
     echo "package main
 
 import (
-        \"$_name/internal/self\"
+        \"$_module_name/internal/self\"
 )
 
 func main() {

@@ -2,5 +2,5 @@
 
 ## usage
 ```
-curl https://raw.githubusercontent.com/ssleert/larell/master/gen.sh | sh
+curl -s https://raw.githubusercontent.com/ssleert/larell/master/gen.sh > gen.sh; sh gen.sh; rm gen.sh
 ```

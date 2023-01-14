@@ -23,6 +23,7 @@ gen_dir_template() {
     ./cmd/$_name/$_name.go
     ./internal/self/self.go
     ./.github/README.md
+    ./assets/idea.md
   "
 
   for i in $dirs; do
@@ -96,11 +97,10 @@ var Debug string' > "./internal/self/self.go"
 }
 
 install_gmks() {
-  cp ../gmks/gmks .
+  curl https://raw.githubusercontent.com/ssleert/larell/master/gmks/gmks > gkms
+  chmod +x gkms
 
-  echo "#!/bin/sh
-
-#project info
+  echo "#project info
 NAME='$_name'
 MAIN_FILE='./cmd/$_name/$_name.go'
 BIN_DIR='.'
@@ -137,6 +137,7 @@ TASKS='
   build
   strip
   install
+  uninstall
   clean
 '
 

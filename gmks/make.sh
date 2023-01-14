@@ -5,6 +5,7 @@ NAME='test'
 MAIN_FILE='./test.go'
 BIN_DIR='.'
 VERSION='0.0.1'
+DEBUG='OFF'
 
 # gc type
 GC='go'

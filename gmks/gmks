@@ -1,0 +1,134 @@
+#!/bin/sh
+
+err() {
+    printf "\033[0;31m\033[1;1merror:\033[1;0m \033[1;1m%s\033[1;0m\n" "$1"
+    exit 1
+}
+
+_has() {
+    _cmd=$(command -v "$1") 2> /dev/null || return 1
+    [ -x "$_cmd" ] || return 1
+}
+
+_generate() {
+  command go generate ./...
+}
+
+_format() {
+  command go fmt ./...
+}
+
+_compile() {
+  [ -n "$USER_GC" ] && GC="$USER_GC"
+
+  case $GC in
+    go)
+      _has 'go' || err 'go toolchain doesn''t installed'
+      _has 'go' && _has 'gccgo' && {
+        err "\$GC setted to 'go' but installed toolchain is gccgo"
+      }
+      set -- go build -ldflags="$GO_LINKER_FLAGS" -o "$O_FILE"
+    ;;
+    gcc)
+      _has 'gccgo' || {
+        err 'gccgo toolchain doesn''t finded'
+      }
+      set -- go build -gccgoflags="$GCC_FLAGS" -o "$O_FILE"
+    ;;
+    *)
+      err "'$GC' abnormal compiler type"
+    ;;
+  esac
+
+  command "$@" "$MAIN_FILE"
+}
+
+_clean() {
+  [ ! -e "$O_FILE" ] && {
+    err "'$O_FILE' doesn't exist"
+  }
+  command rm "$O_FILE"
+}
+
+_strip() {
+  _has 'strip' && err 'strip utility doesn''t finded'
+  [ ! -e "$O_FILE" ] && {
+    err "'$O_FILE' doesn't exist"
+  }
+  command strip -s "$O_FILE"
+}
+
+_install() {
+  [ ! -e "$O_FILE" ] && {
+    err "'$O_FILE' doesn't exist"
+  }
+  command sudo cp "$O_FILE" '/usr/local/bin'
+}
+
+_uninstall() {
+  [ ! -e "/usr/local/bin/$NAME" ] && {
+    err "'/usr/local/bin/$NAME' doesn't exist"
+  }
+  command sudo rm "/usr/local/bin/$NAME"
+}
+
+_run() {
+  [ ! -e "$O_FILE" ] && {
+    err "'$O_FILE' doesn't exist"
+  }
+  ./"$O_FILE" "$@"
+}
+
+main() {
+  . ./make.sh
+
+  [ -z "$NAME" ] && err '$NAME is empty or not defined'
+  [ -z "$MAIN_FILE" ] && err '$MAIN_FILE is empty or not defined'
+  [ -z "$BIN_DIR" ] && err '$BIN_DIR is empty or not defined'
+  [ -z "$VERSION" ] && err '$VERSION is empty or not defined'
+  [ -z "$DEBUG" ] && err '$DEBUG is empty or not defined'
+  [ -z "$GC" ] && err '$GC is empty or not defined'
+  [ -z "$TASKS" ] && err '$TASKS is empty or not defined'
+  
+  O_FILE="$BIN_DIR/$NAME"
+
+  case $1 in
+    all)
+      for i in $TASKS; do
+        echo "$i"
+      done
+    ;;
+    get)
+      [ -z "$2" ] && err '$2 arg not defined'
+      case $2 in
+        commit_hash)
+          echo -n "$(git rev-parse --short HEAD)"
+        ;;
+        version)
+          echo -n "$VERSION"
+        ;;
+        debug)
+          [ -n "$USER_DEBUG" ] && DEBUG="ON"
+          echo -n "$DEBUG"
+        ;;
+        *)
+          echo -n 'nil'
+        ;;
+      esac
+    ;;
+    *)
+      for i in $TASKS; do
+        case $i in
+          "$1")
+            shift
+            $i "$@"
+            exit $?
+          ;;
+        esac
+      done
+      err "'$1' task is not defined"
+    ;;
+  esac
+}
+
+main "$@"
